@@ -1,0 +1,10 @@
+# Saved models and summaries
+summaries/
+saved_models/
+
+# MNIST dataset
+MNIST_data/
+
+# Pycharm
+.idea/
+__pycache__/
