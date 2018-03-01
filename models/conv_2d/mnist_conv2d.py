@@ -3,10 +3,10 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 
 
-def weight(shape, isFilter):
+def weight(shape, is_filter):
     with tf.name_scope('weight'):
         w = tf.Variable(tf.truncated_normal(shape, stddev=0.1), name='weight')
-        if isFilter:
+        if is_filter:
             with tf.device('/cpu:0'):
                 images = tf.transpose(w, [3, 2, 1, 0])
                 images = tf.split(images, shape[3], 0)
@@ -14,11 +14,6 @@ def weight(shape, isFilter):
                     image = tf.reshape(images[i],
                                        [1, shape[1]*shape[2], shape[0], 1])
                     tf.summary.image('filter_{}'.format(i), image)
-                # images = list(tf.split(images, shape[2], 3))
-                # images = tf.stack(images)
-                # images = tf.reshape(images,
-                #                     [1, shape[1]*shape[2]*shape[3], shape[0], 1])
-                # tf.summary.image('filter', images)
     return w
 
 
@@ -82,21 +77,21 @@ with tf.name_scope('Model'):
         cross_entropy = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_, logits=y_conv
                                                     , name='cross_entropy'))
-        train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy, name='Adam')
+        regularizers = (tf.nn.l2_loss(w_conv1) + tf.nn.l2_loss(w_conv2) +
+                        tf.nn.l2_loss(w_fc1) + tf.nn.l2_loss(w_fc2))
+        beta = tf.placeholder(tf.float32)
+        loss = tf.reduce_mean(cross_entropy + beta * regularizers)
+        train_step = tf.train.AdamOptimizer(1e-4).minimize(loss, name='Adam')
 
 # with tf.device('/gpu:0'):
 with tf.name_scope('Evaluation'):
     with tf.name_scope('Accuracy'):
         correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
+        tf.summary.scalar("accuracy", accuracy)
 
     with tf.name_scope('Saver'):
         saver = tf.train.Saver()
-
-label = 'zero'
-file_contents = tf.read_file('../../test_images/{}.png'.format(label))
-image_raw = tf.image.decode_png(file_contents, channels=1)
-image_tensor = tf.reshape(image_raw, shape=[-1, 784])
 
 with tf.Session(
         # config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
@@ -106,7 +101,7 @@ with tf.Session(
     test_writer = tf.summary.FileWriter('../../summaries/conv2d/test', sess.graph)
     tf.global_variables_initializer().run()
 
-    epochs = 10
+    epochs = 50
     batch_size = 100
     # examples_per_batch = int(mnist.train.num_examples / batch_size)
     examples_per_batch = 200
@@ -117,18 +112,14 @@ with tf.Session(
         for i in range(examples_per_batch):
             batch_xs, batch_ys = mnist.train.next_batch(batch_size)
             cost_i, __ = sess.run([cross_entropy, train_step],
-                                  feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+                                  feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5, beta: 0.01})
             cost += cost_i
 
         summary, accuracy_val = sess.run([merged, accuracy],
-                                     feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
+                                         feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
         test_writer.add_summary(summary, e * examples_per_batch)
         print("Passed epoch {} with total cost {} and instantaneous cost {}".format(e, cost, cost_i))
         print("Accuracy: {0:.2f}%".format(accuracy_val * 100))
-
-    image = sess.run(image_tensor)
-    output = sess.run([logits], feed_dict={x: image, keep_prob: 1.0})
-    print("{}: {}".format(label, output))
 
     save_path = saver.save(sess, '../../saved_models/conv2d/model.ckpt')
     print("Model saved: {}".format(save_path))

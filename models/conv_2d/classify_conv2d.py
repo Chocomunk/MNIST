@@ -1,21 +1,9 @@
 import tensorflow as tf
 
+
 def weight(shape, isFilter):
     with tf.name_scope('weight'):
         w = tf.Variable(tf.truncated_normal(shape, stddev=0.1), name='weight')
-        # if isFilter:
-        #     with tf.device('/cpu:0'):
-        #         images = tf.transpose(w, [3, 2, 1, 0])
-        #         images = tf.split(images, shape[3], 0)
-        #         for i in range(shape[3]):
-        #             image = tf.reshape(images[i],
-        #                                [1, shape[1]*shape[2], shape[0], 1])
-        #             tf.summary.image('filter_{}'.format(i), image)
-        #             # images = list(tf.split(images, shape[2], 3))
-        #             # images = tf.stack(images)
-        #             # images = tf.reshape(images,
-        #             #                     [1, shape[1]*shape[2]*shape[3], shape[0], 1])
-        #             # tf.summary.image('filter', images)
     return w
 
 
@@ -118,5 +106,8 @@ with tf.Session(
         image = sess.run(image_tensor)
 
         output, summary = sess.run([logits, merged], feed_dict={x: image, keep_prob: 1.0})
+        label_out_op = tf.argmax(output, axis=1)
+        label_out = sess.run(label_out_op)
         writer.add_summary(summary, 0)
-        print("{}: {}".format(label, output))
+        print("{}: {}, {}".format(label, label_out, output))
+

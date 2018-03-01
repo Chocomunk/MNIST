@@ -30,6 +30,8 @@ with tf.Session(
         merged = tf.summary.merge_all()
 
         output = sess.run(logits, feed_dict={network.get_train_data()[0]: image})
+        label_out_op = tf.argmax(output)
+        label_out = sess.run(label_out_op)
         # writer.add_summary(summary, 0)
-        print("{}: {}".format(label, output))
+        print("{}: {}, {}".format(label, label_out, output))
 
