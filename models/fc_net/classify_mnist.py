@@ -1,5 +1,5 @@
 import tensorflow as tf
-from Util.tf_ff_nn import NeuralNetwork
+from Util.models.tf_ff_nn import NeuralNetwork
 
 network = NeuralNetwork([784, 333, 333, 333, 10], cost_func=tf.nn.softmax_cross_entropy_with_logits_v2,
                         activation_func=tf.nn.relu,

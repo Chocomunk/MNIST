@@ -1,8 +1,7 @@
 import tensorflow as tf
-from Util.models.model_conv2d_batch_norm import build_model
+from Util.models.model_aggregate_block_test import build_model
 
-x, y_, logits, train_step, saver, accuracy, cross_entropy, keep_prob, beta = build_model(False)
-
+x, y_, logits, train_step, saver, accuracy, cross_entropy, keep_prob, beta = build_model()
 
 labels = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
           'eight', 'nine']
@@ -10,9 +9,9 @@ labels = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
 with tf.Session(
         config=tf.ConfigProto(allow_soft_placement=True)
 ) as sess:
-    writer = tf.summary.FileWriter('../../summaries/test/conv2d_batch_norm', sess.graph)
+    writer = tf.summary.FileWriter('../../summaries/test/conv2d', sess.graph)
 
-    saver.restore(sess, '../../saved_models/conv2d_batch_norm/model.ckpt')
+    saver.restore(sess, '../../saved_models/conv2d/model.ckpt')
     print('Model restored')
 
     for label in labels:
@@ -25,3 +24,4 @@ with tf.Session(
 
         output, label_out = sess.run([logits, label_out_op], feed_dict={x: image, keep_prob: 1.0})
         print("{}: {}, {}".format(label, label_out, output))
+

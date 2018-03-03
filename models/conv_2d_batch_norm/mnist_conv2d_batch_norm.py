@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-
-from Util.model_conv2d_batch_norm import build_model
+from Util.models.model_conv2d_batch_norm import build_model
 
 mnist = input_data.read_data_sets("../../MNIST_data/", one_hot=True)
 
@@ -12,7 +11,7 @@ with tf.Session(
         config=tf.ConfigProto(allow_soft_placement=True)
 ) as sess:
     merged = tf.summary.merge_all()
-    test_writer = tf.summary.FileWriter('../../summaries/conv2d_batch_norm/test', sess.graph)
+    test_writer = tf.summary.FileWriter('../../summaries/conv2d_batch_norm/train', sess.graph)
     tf.global_variables_initializer().run()
 
     epochs = 50
@@ -26,7 +25,7 @@ with tf.Session(
         for i in range(examples_per_batch):
             batch_xs, batch_ys = mnist.train.next_batch(batch_size)
             cost_i, __ = sess.run([cross_entropy, train_step],
-                                  feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5, beta: 0.01})
+                                  feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5, beta: 0.02})
             cost += cost_i
 
         summary, accuracy_val = sess.run([merged, accuracy],

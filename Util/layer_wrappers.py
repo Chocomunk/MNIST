@@ -3,15 +3,24 @@ import tensorflow as tf
 epsilon = 1e-7
 
 
-def weight(shape):
+def weight(shape, is_filter=False):
     with tf.name_scope('weight'):
         w = tf.Variable(tf.truncated_normal(shape, stddev=0.1), name='weight')
+        if is_filter:
+            with tf.device('/cpu:0'):
+                images = tf.transpose(w, [3, 2, 1, 0])
+                images = tf.split(images, shape[3], 0)
+                for i in range(shape[3]):
+                    image = tf.reshape(images[i],
+                                       [1, shape[1]*shape[2], shape[0], 1])
+                    tf.summary.image('filter_{}'.format(i), image)
     return w
 
 
 def bias(shape):
     with tf.name_scope('bias'):
         b = tf.Variable(tf.constant(0.1, shape=shape), name='bias')
+        tf.summary.tensor_summary('biases', b)
     return b
 
 
@@ -20,8 +29,8 @@ def conv2d(data, weight_filter):
                         padding='SAME', name='convolution')
 
 
-def max_pool_2x2(data):
-    return tf.nn.max_pool(data, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
+def max_pool(data, dim=2):
+    return tf.nn.max_pool(data, ksize=[1, dim, dim, 1], strides=[1, dim, dim, 1],
                           padding='SAME', name='max_pooling')
 
 

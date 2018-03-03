@@ -1,7 +1,6 @@
 import tensorflow as tf
-import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
-from Util.tf_ff_nn import NeuralNetwork
+from Util.models.tf_ff_nn import NeuralNetwork
 
 mnist = input_data.read_data_sets('../../MNIST_data/', one_hot=True)
 

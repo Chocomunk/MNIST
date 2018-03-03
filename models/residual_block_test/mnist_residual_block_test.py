@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from Util.models.model_conv2d import build_model
+from Util.models.model_aggregate_block_test import build_model
 
 mnist = input_data.read_data_sets('../../MNIST_data/', one_hot=True)
 
